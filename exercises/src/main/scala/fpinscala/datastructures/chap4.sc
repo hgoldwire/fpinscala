@@ -1,16 +1,17 @@
 import fpinscala.datastructures._
 
-import fpinscala.datastructures.List._
+val t = Branch(
+  Branch(
+    Leaf(1),
+    Leaf(2)
+  ),
+  Branch(
+    Leaf(3),
+    Branch(
+      Leaf(4),
+      Leaf(5)
+    )
+  ),
+)
 
-
-val x = List(1,2,3,4,5)
-
-//List.tail(x)
-//
-//List.setHead(x, 8)
-//
-//List.drop(x, 2)
-//
-//List.dropWhile(x, (x:Int) => x < 3)
-
-List.init(x)
+Tree.
