@@ -110,10 +110,40 @@ trait Stream[+A] {
       case _ => None
     }
 
-  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] = ???
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    unfold((this, s2)) {
+      case (Cons(h, t), Cons(hh, tt)) => Some((Some(h()), Some(hh())), (t(), tt()))
+      case (Cons(h, t), Empty) => Some((Some(h()), None: Option[B]), (t(), empty[B]))
+      case (Empty, Cons(hh, tt)) => Some(((None: Option[A], Some(hh())), (empty[A], tt())))
+      case (Empty, Empty) => None
+    }
+
+  def startsWith[B](s: Stream[B]): Boolean = (this, s) match {
+    case (_, Empty) => true
+    case (Empty, Cons(hh, tt)) => false
+    case (Cons(h, t), Cons(hh, tt)) => if (h() == hh()) t().startsWith(tt()) else false
+  }
+
+  def startsWith2[B](s: Stream[B]): Boolean =
+    zipAll(s).takeWhile(_._2.nonEmpty) forAll (a => a._1 == a._2)
+
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+      //      case x@Cons(h, t) => Some(x, t())
+      case Empty => None
+      case s => Some(s, s drop 1)
+    } append Stream(empty)
+
+  def hasSubsequence[A](s: Stream[A]): Boolean =
+    tails exists (_ startsWith s)
+
+  def scanRight[B](init: B)(f: Stream[A] => B): Stream[Stream[B]] =
+    unfold((this, init)) {
+      case (Empty, acc) => None
+      case (s, acc) => Some(f(s) -> (s drop 1, f(s)))
+    }
 
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
 }
 
 case object Empty extends Stream[Nothing]
